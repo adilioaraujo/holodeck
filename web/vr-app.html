@@ -1,0 +1,271 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
+
+<link rel="import" href="bower_components/nuxeo-elements/nuxeo-connection.html">
+<link rel="import" href="bower_components/nuxeo-elements/nuxeo-document.html">
+<link rel="import" href="bower_components/nuxeo-elements/nuxeo-operation.html">
+<link rel="import" href="bower_components/nuxeo-elements/nuxeo-page-provider.html">
+<link rel="import" href="bower_components/nuxeo-elements/nuxeo-resource.html">
+
+<link rel="import" href="vr-slot.html">
+<link rel="import" href="vr-card.html">
+<link rel="import" href="vr-view.html">
+
+<dom-module id="vr-app">
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        box-sizing: border-box;
+        position: relative;
+        width: 100vmin;
+        height: 100vmin;
+      }
+
+      #menu {
+        color: #2196F3;
+        white-space: pre-wrap;
+        padding: 0.7vmin;
+      }
+
+      .title {
+        display: block;
+        font-weight: bold;
+        font-size: 3vmin;
+        line-height: 3vmin;
+        padding-top: 0.8vmin;
+        text-shadow: 0 0.2vmin 2vmin #000000;
+      }
+
+      .type {
+        display: block;
+        font-weight: bold;
+        font-size: 3vmin;
+        line-height: 3vmin;
+        padding-top: 0.8vmin;
+        text-shadow: 0 0.2vmin 2vmin #000000;
+        color: #0D47A1;
+      }
+
+      .parent {
+        display: block;
+        font-weight: bold;
+        font-size: 3vmin;
+        line-height: 2vmin;
+        padding-top: 1.2vmin;
+        text-shadow: 0 0.2vmin 2vmin #000000;
+        color: #0D47A1;
+      }
+
+      paper-ripple {
+        color: #2196F3;
+      }
+    </style>
+
+    <nuxeo-connection id="nx" url="[[server]]"></nuxeo-connection>
+
+    <nuxeo-document
+      id="request"
+      headers='{"X-NXfetch.document": "properties"}'
+      enrichers="breadcrumb, preview, renditions"
+      response="{{doc}}"
+    ></nuxeo-document>
+
+    <nuxeo-page-provider
+      id="provider"
+      provider="advanced_document_content"
+      page-size="100"
+      page="1"
+      enrichers="renditions"
+    ></nuxeo-page-provider>
+
+    <vr-slot l="0" t="0" r="100" b="10">
+      <div id="menu"> . . ..  .   .  .. . . <br> .  HOLODECK  . <br>::. .: . ... . :. .::</div>
+    </vr-slot>
+
+    <vr-slot l="0" t="10" r="100" b="15">
+      <div class="title">[[_title(selected)]]</div>
+      <paper-ripple id="rippleTitle" opacity-decay-velocity="0.25"></paper-ripple>
+    </vr-slot>
+
+    <vr-slot l="0" t="15" r="100" b="70">
+      <vr-view doc="[[selected]]"></vr-view>
+    </vr-slot>
+
+    <vr-slot l="0" t="70" r="100" b="75">
+      <div class="type">[[_type(selected)]]</div>
+    </vr-slot>
+
+    <vr-slot l="0" t="75" r="100" b="95">
+      <template is="dom-repeat" items="[[items]]" as="item">
+        <vr-card id="card-[[index]]" doc="[[item]]" selected$="[[_selected(card, index)]]"></vr-card>
+      </template>
+    </vr-slot>
+
+    <vr-slot l="0" t="95" r="100" b="100">
+      <paper-ripple id="rippleBack" opacity-decay-velocity="0.25"></paper-ripple>
+      <div class="parent">» [[_title(doc)]] «</div>
+    </vr-slot>
+
+    <iron-a11y-keys target="[[_target]]" keys="left right up down space" on-keys-pressed="_keys"></iron-a11y-keys>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'vr-app',
+
+      properties: {
+        server: {
+          type: String,
+          value: 'http://localhost:8080'
+        },
+        connected: {
+          type: Boolean,
+          value: false
+        },
+        query: {
+          type: String,
+          value: 'pictures'
+        },
+        doc: {
+          type: Object,
+          observer: '_docChanged'
+        },
+        selected: {
+          type: Object,
+          value: {}
+        },
+        card: {
+          type: Number,
+          value: -1,
+          observer: '_cardChanged'
+        },
+        items: {
+          type: Array,
+          value: []
+        },
+        _target: {
+          type: Object,
+          value: function() {
+            return document.body;
+          }
+        }
+      },
+
+      init: function() {
+        this.$.request.docId = '';
+        this.$.request.docPath = '/default-domain/';
+        this.$.request.get().then(function() {
+          this.$.request.docPath = '';
+          this.card = 2;
+          window.android.ready();
+        }.bind(this));
+      },
+
+      load: function(uid) {
+        this.selected = '';
+        this.$.request.docId = uid;
+        this.$.request.get();
+      },
+
+      speak: function(message) {
+        if (window.android) {
+          window.android.speak(message);
+        } else {
+          console.log('speak: ' + message);
+        }
+      },
+
+      show: function() {
+        if (this._hasFacet(this.selected, 'Folderish')) {
+          this.$.rippleTitle.simulatedRipple();
+          this.doc = this.selected;
+          app.speak(this.doc.title);
+        }
+      },
+
+      back: function() {
+        if (this.doc && this.doc.type && this.doc.type !== 'Domain' && this.doc.parentRef) {
+          this.load(this.doc.parentRef);
+        }
+        this.$.rippleBack.simulatedRipple();
+      },
+
+      prev: function() {
+        this.card = (this.card > 0) ? this.card - 1 : 0;
+      },
+
+      next: function() {
+        if (this.items.length > 0) {
+          var len = this.items.length - 5;
+          this.card = (this.card < len) ? this.card + 1 : len;
+        }
+      },
+
+      _title: function(doc) {
+        return (doc && doc.title) ? doc.title : '...';
+      },
+
+      _type: function(doc) {
+        return (doc && doc.type) ? ('.: ' + doc.type + ' :.') : (':..  ..:');
+      },
+
+      _selected: function(card, index) {
+        return card === index - 2;
+      },
+
+      _cardChanged: function(card) {
+        this.selected = '';
+        var item = document.querySelector('#card-' + card);
+        if (item) {
+          item.scrollIntoView({ behavior: 'smooth' });
+          this.selected = this.items[card + 2];
+        }
+      },
+
+      _docChanged: function(doc) {
+        if (doc && doc.uid) {
+          this.card = -1;
+          if (doc.title) {
+            app.speak(doc.title);
+          }
+          this.$.provider.params = {'ecm_parentId': doc.uid};
+          this.$.provider.fetch().then(function(data) {
+            this.set('items', []);
+            if (data.entries && data.entries.length > 0) {
+              this.push('items', {});
+              this.push('items', {});
+              data.entries.forEach(function(item) {
+                this.push('items', item);
+              }.bind(this));
+              this.push('items', {});
+              this.push('items', {});
+            }
+            this.card = 0;
+            this._cardChanged(this.card);
+          }.bind(this));
+        }
+      },
+
+      _hasFacet: function(doc, facet) {
+        return doc && doc.facets && doc.facets.indexOf(facet) !== -1;
+      },
+
+      _keys: function(e) {
+        if (!e.detail.keyboardEvent.repeat) {
+          switch (e.detail.key) {
+            case 'space': this.init(); break;
+            case 'up': this.show(); break;
+            case 'down': this.back(); break;
+            case 'left': this.prev(); break;
+            case 'right': this.next(); break;
+          }
+        }
+      }
+
+    });
+  </script>
+</dom-module>

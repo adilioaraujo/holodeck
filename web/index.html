@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+    <title>app</title>
+    <script src="smoothscroll.js"></script>
+    <script>
+
+      window.Polymer = {
+        lazyRegister: true
+      };
+
+      (function() {
+        'use strict';
+
+        var onload = function() {
+          if (!window.HTMLImports) {
+            document.dispatchEvent(
+              new CustomEvent('WebComponentsReady', {bubbles: true})
+            );
+          }
+        };
+
+        var webComponentsSupported = (
+          'registerElement' in document
+          && 'import' in document.createElement('link')
+          && 'content' in document.createElement('template')
+        );
+
+        if (!webComponentsSupported) {
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = '/bower_components/webcomponentsjs/webcomponents-lite.min.js';
+          script.onload = onload;
+          document.head.appendChild(script);
+        } else {
+          onload();
+        }
+      })();
+
+    </script>
+
+    <style>
+      body {
+        background-color: black;
+        font-family: monospace;
+        font-size: 2vmin;
+        font-weight: bolder;
+        letter-spacing: 0.1em;
+        color: white;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <link rel="import" href="vr-app.html">
+  </head>
+
+  <body>
+    <vr-app id="app"></vr-app>
+  </body>
+
+  <script>
+    var app = document.getElementById('app');
+  </script>
+
+</html>

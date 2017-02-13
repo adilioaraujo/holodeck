@@ -1,0 +1,12 @@
+{
+  "entrypoint": "index.html",
+  "shell": "vr-app.html",
+  "sourceGlobs": [
+    "/*",
+    "bower.json"
+  ],
+  "includeDependencies": [
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js",
+    "smoothscroll.js"
+  ]
+}

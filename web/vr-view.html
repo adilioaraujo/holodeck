@@ -1,0 +1,117 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-image/iron-image.html">
+
+<dom-module id="vr-view">
+  <template>
+
+    <style>
+      iron-icon {
+        --iron-icon-width: 12vmin;
+        --iron-icon-height: 12vmin;
+      }
+      iron-image {
+        width: 100vmin;
+        height: 50vmin;
+        margin: 2vmin 0;
+      }
+      audio {
+        width: 100vmin;
+        height: 40vmin;
+      }
+
+      .info {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        font-size: 2.5vmin;
+        font-weight: bold;
+        letter-spacing: 0.5vmin;
+        padding: 22vmin 0;
+        color: #223344;
+      }
+      .info
+    </style>
+
+    <div class="main">
+      <audio id="audio" autoplay controle><source src="[[_src(doc)]]"></audio>
+
+      <iron-image id="image"
+                  src="[[_src(doc)]]"
+                  placeholder="[[_placeholder(doc)]]"
+                  sizing="contain" fade preload
+                  hidden$="[[!_showImage(doc)]]"
+      ></iron-image>
+
+      <div class="info">
+        <div class="folder" hidden$="[[!_isFolderish(doc)]]">
+          <iron-icon icon="icons:expand-less"></iron-icon>
+        </div>
+        <div class="default" hidden$="[[doc]]">
+          <iron-icon icon="icons:help-outline"></iron-icon>
+        </div>
+      </div>
+
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'vr-view',
+
+      properties: {
+        doc: Object
+      },
+
+      _showImage: function(doc) {
+        console.log(this._placeholder(doc));
+        return this._placeholder(doc) && !this._isFolderish(doc);
+      },
+
+      _isFolderish: function(doc) {
+        return doc && doc.facets && doc.facets.indexOf('Folderish') !== -1;
+      },
+
+      _placeholder: function(doc) {
+        if (doc) {
+          var enrichers = doc.contextParameters;
+          if (enrichers && enrichers.renditions && enrichers.renditions.length > 0) {
+            return enrichers.renditions[0].url;
+          }
+        }
+        return null;
+      },
+
+      _src: function(doc) {
+        var src = null;
+        if (this.$.audio) {
+          this.$.audio.pause();
+        }
+        if (doc && doc.properties && doc.type) {
+          switch (doc.type) {
+            case 'Audio':
+              src = doc.properties['file:content'].data;
+              this.$.audio.load();
+              break;
+            case 'Picture':
+              var views = doc.properties['picture:views'];
+              if (views) {
+                var i = views.length - 1;
+                if (i > -1) {
+                  i = (i > 3) ? 3 : i;
+                  src = views[i].content.data;
+                }
+              }
+              break;
+          }
+        }
+        return src;
+      }
+
+    });
+  </script>
+
+</dom-module>

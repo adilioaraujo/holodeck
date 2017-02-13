@@ -1,0 +1,49 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+<dom-module id="vr-slot">
+  <template>
+
+    <style>
+      #slot {
+        display: block;
+        box-sizing: border-box;
+        position: absolute;
+        text-align: center;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+    </style>
+
+    <div id="slot">
+      <content></content>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'vr-slot',
+
+      properties: {
+        l: { type: Number, value: 0 },
+        t: { type: Number, value: 0 },
+        r: { type: Number, value: 100 },
+        b: { type: Number, value: 100 }
+      },
+
+      observers: [
+        '_sizeChanged(l, t, r, b)'
+      ],
+
+      _sizeChanged: function() {
+        var style = this.$.slot.style;
+        style.left = this.l + '%';
+        style.top = this.t + '%';
+        style.right = (100 - this.r) + '%';
+        style.bottom = (100 - this.b) + '%';
+      }
+
+    });
+  </script>
+
+</dom-module>

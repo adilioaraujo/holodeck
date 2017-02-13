@@ -1,0 +1,12 @@
+{
+  "name": "app",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.6.0",
+    "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.6",
+    "iron-image": "PolymerElements/iron-image#^1.2.5",
+    "nuxeo-elements": "nuxeo/nuxeo-elements#master",
+    "paper-ripple": "PolymerElements/paper-ripple#^1.0.10",
+    "iron-icons": "PolymerElements/iron-icons#^1.2.0"
+  },
+  "private": true
+}
